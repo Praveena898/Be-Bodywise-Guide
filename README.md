@@ -1,4 +1,4 @@
-# Bodywise Guide
+# BloomWise
 
 An independent product guide that helps people choose between Be Bodywise products and set realistic expectations.
 It is not the official Be Bodywise website.
