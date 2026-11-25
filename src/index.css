@@ -3,5 +3,8 @@
 @tailwind utilities;
 
 :root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{background:#FFFBF7;color:#2C3E2D;font-family:Inter,system-ui,sans-serif}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:#FFFBF7;color:#2C3E2D;font-family:Inter,system-ui,sans-serif;font-size:1.1875rem;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%}
+button,input,select,textarea{font-size:inherit}
 button{cursor:pointer}

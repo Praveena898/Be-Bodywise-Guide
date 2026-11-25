@@ -77,6 +77,7 @@ const CQ={
 const SAFE=[["preg","I’m pregnant, breastfeeding or planning pregnancy","Ask your doctor before starting any supplement or active skincare product."],["meds","I take regular medication or have a diagnosed condition","Ask a doctor or pharmacist first, especially before capsules or gummies."],["sens","I have sensitive, eczema-prone skin or allergies","Patch test first and read the full ingredient list on the pack."]];
 const FAQ=[["Is this the official Be Bodywise website?","No. Bodywise Guide is an independent guide and isn’t affiliated with or endorsed by Be Bodywise. For orders and official product information, please use the brand’s own channels."],["Where does the product information come from?","From Be Bodywise’s own lip balm page and public retailer listings (Nykaa, Tira, 1mg, Purplle, Flipkart), checked on 25 Nov 2026. Versions, sizes and formulas change, so your pack is always the final word."],["Does it diagnose or recommend treatment?","No. The fit finder only narrows down which sample product pages to read, and flags when a professional should come first."],["Why is there a 3-month review window?","Listings for the gummies, body wash and lip balm mention about 3 months of regular use, and the lip balm page says not to expect results in one month. For products with no stated window, the plan uses the same pacing only as a checkpoint, not a promise."],["Where is my data stored?","Only in this browser’s local storage. Nothing is sent anywhere. Avoid adding names or sensitive details in notes."],["When should I stop and ask someone?","If you notice itching, redness, swelling, pain, a rash or anything that worries you, stop and speak to a pharmacist or doctor."]];
 
+const W="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 2xl:px-14";
 const useLS=(k,init)=>{const [v,setV]=useState(()=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):init}catch(e){return init}});useEffect(()=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},[k,v]);return [v,setV]};
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
@@ -89,36 +90,42 @@ function Nav({route,go}){
  const items=[["home","Home","home"],["fit","Find my fit","spark"],["products","Products","search"],["plan","My plan","clip"],["help","Help","help"]];
  const active=i=>route===i||(i==="products"&&route.startsWith("product-"));
  return html`<header class="sticky z-20 border-b border-blush-100 bg-cream/90 backdrop-blur" style=${{top:"env(safe-area-inset-top,0px)"}}>
-  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+  <div class=${W+" flex items-center justify-between py-3"}>
    <button onClick=${()=>go("home")} class="flex items-center gap-2 font-serif text-xl text-sage-900"><span class="grid h-8 w-8 place-items-center rounded-full bg-sage-100 text-sage-700"><${Icon} n="leaf" s=${18}/></span>Bodywise Guide</button>
-   <nav class="hidden gap-1 md:flex">${items.map(([id,l,ic])=>html`<button key=${id} onClick=${()=>go(id)} class=${"flex items-center gap-2 rounded-full px-4 py-2 text-sm "+(active(id)?"bg-sage-100 font-medium text-sage-900":"text-sage-700 hover:bg-sage-50")}><${Icon} n=${ic} s=${16}/>${l}</button>`)}</nav>
-   <button class="rounded-full p-2 text-sage-700 md:hidden" aria-label="Menu" onClick=${()=>setOpen(!open)}><${Icon} n=${open?"x":"menu"}/></button>
+   <nav class="hidden gap-1 lg:flex">${items.map(([id,l,ic])=>html`<button key=${id} onClick=${()=>go(id)} class=${"flex items-center gap-2 rounded-full px-4 py-2 text-sm "+(active(id)?"bg-sage-100 font-medium text-sage-900":"text-sage-700 hover:bg-sage-50")}><${Icon} n=${ic} s=${16}/>${l}</button>`)}</nav>
+   <button class="rounded-full p-2 text-sage-700 lg:hidden" aria-label="Menu" onClick=${()=>setOpen(!open)}><${Icon} n=${open?"x":"menu"}/></button>
   </div>
-  ${open&&html`<div class="border-t border-blush-100 px-4 pb-3 md:hidden">${items.map(([id,l,ic])=>html`<button key=${id} onClick=${()=>{setOpen(false);go(id)}} class=${"flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm "+(active(id)?"bg-sage-100 font-medium":"")}><${Icon} n=${ic} s=${18}/>${l}</button>`)}</div>`}
+  ${open&&html`<div class="border-t border-blush-100 px-4 pb-3 lg:hidden">${items.map(([id,l,ic])=>html`<button key=${id} onClick=${()=>{setOpen(false);go(id)}} class=${"flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm "+(active(id)?"bg-sage-100 font-medium":"")}><${Icon} n=${ic} s=${18}/>${l}</button>`)}</div>`}
  </header>`}
+
+const Pic=({p,cls="",tint=true})=>{
+ const exts=["jpg","png","webp"];const [i,setI]=useState(0);const [bad,setBad]=useState(false);
+ const base=(tint?p.tint+" ":"")+"flex items-center justify-center overflow-hidden "+cls;
+ if(bad)return html`<div class=${base+" px-4 text-center font-serif text-lg text-sage-700"}>${p.name}</div>`;
+ return html`<div class=${base}><img src=${"/products/"+p.id+"."+exts[i]} alt=${p.name} loading="lazy" onError=${()=>i<exts.length-1?setI(i+1):setBad(true)} class="h-full w-full object-contain p-3"/></div>`};
 
 function Card({p,go,S}){
  const has=S.plan.some(x=>x.pid===p.id);
  return html`<article class="flex flex-col overflow-hidden rounded-3xl border border-blush-100 bg-white shadow-sm">
-  <div class=${"flex h-28 items-center justify-center px-4 text-center font-serif text-lg text-sage-700 "+p.tint}>${p.name}</div>
+  <${Pic} p=${p} cls="h-56 lg:h-64"/>
   <div class="flex flex-1 flex-col gap-2 p-5"><p class="text-xs text-sage-500">${p.type} · ${p.pack}</p><p class="flex-1 text-sm text-sage-700">${p.line}</p>
   <div class="mt-2 flex flex-wrap gap-2"><${Btn} kind="ghost" onClick=${()=>go("product-"+p.id)}>Details<//><${Btn} kind=${has?"soft":"main"} onClick=${()=>S.add(p.id)} dis=${has}>${has?"In my plan":"Add to plan"}<//></div></div></article>`}
 
 function Home({go}){
  return html`<div>
-  <section class="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-16">
+  <section class=${W+" grid items-center gap-8 py-10 lg:grid-cols-2 lg:gap-14 lg:py-20"}>
    <div><span class="rounded-full bg-sage-100 px-3 py-1 text-xs font-medium text-sage-700">Your personal product guide</span>
-    <h1 class="mt-5 font-serif text-4xl leading-tight text-sage-900 md:text-5xl">Choose the right product. Know what’s realistic.</h1>
-    <p class="mt-4 max-w-md text-sage-700">Answer three quick questions, read the real ingredients and directions in plain language, then follow a simple plan that shows when it’s too early to judge and when to ask a professional.</p>
+    <h1 class="mt-5 font-serif text-3xl leading-tight text-sage-900 sm:text-4xl lg:text-5xl">Choose the right product. Know what’s realistic.</h1>
+    <p class="mt-4 max-w-md text-sage-700 lg:max-w-xl lg:text-lg">Answer three quick questions, read the real ingredients and directions in plain language, then follow a simple plan that shows when it’s too early to judge and when to ask a professional.</p>
     <div class="mt-7 flex flex-wrap gap-3"><${Btn} onClick=${()=>go("fit")}><${Icon} n="spark" s=${16}/>Find my fit<//><${Btn} kind="soft" onClick=${()=>go("products")}>Browse products<//></div></div>
    <div class="rounded-[2rem] bg-gradient-to-br from-blush-100 via-cream to-sage-100 p-7">
     <p class="font-serif text-xl text-sage-900">Why this exists</p>
     <p class="mt-2 text-sm text-sage-700">Conversations with five Be Bodywise customers showed two recurring gaps: choosing among many products, and not knowing how long results should realistically take.</p>
     <div class="mt-4 grid gap-3 text-sm">${[["1","Find my fit","Three questions narrow it down and flag when a doctor should come first."],["2","Read it plainly","Ingredients, directions and honest expectations for each product."],["3","Follow a plan","A daily checklist, a review window and a summary you can show a professional."]].map(([n,t,d])=>html`<div key=${n} class="flex gap-3 rounded-2xl bg-white/80 p-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-sage-700 text-xs text-white">${n}</span><div><p class="font-medium text-sage-900">${t}</p><p class="text-sage-700">${d}</p></div></div>`)}</div></div>
   </section>
-  <section class="mx-auto max-w-6xl px-4 pb-16"><H>Realistic timelines at a glance</H>
+  <section class=${W+" pb-16"}><H>Realistic timelines at a glance</H>
    <p class="mt-1 text-sm text-sage-700">What the brand and retailer listings say about how long to use each product. Not a promise of results.</p>
-   <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">${PR.map(p=>html`<button key=${p.id} onClick=${()=>go("product-"+p.id)} class="rounded-2xl border border-blush-100 bg-white p-4 text-left hover:border-sage-500"><p class="font-medium text-sage-900">${p.name}</p><p class="mt-1 flex gap-2 text-sm text-sage-700"><span class="mt-0.5 shrink-0 text-sage-500"><${Icon} n="clock" s=${16}/></span>${p.tl}</p></button>`)}</div>
+   <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">${PR.map(p=>html`<button key=${p.id} onClick=${()=>go("product-"+p.id)} class="rounded-2xl border border-blush-100 bg-white p-4 text-left hover:border-sage-500"><p class="font-medium text-sage-900">${p.name}</p><p class="mt-1 flex gap-2 text-sm text-sage-700"><span class="mt-0.5 shrink-0 text-sage-500"><${Icon} n="clock" s=${16}/></span>${p.tl}</p></button>`)}</div>
   </section></div>`}
 
 function Fit({go,S}){
@@ -136,20 +143,20 @@ function Fit({go,S}){
   ${q.prods.length>1&&html`<${Note}>If you add more than one product, start with one and wait about two weeks before adding the next. That way you can tell what is helping and what is irritating.<//>`}
   <div class="grid gap-4 sm:grid-cols-2">${q.prods.map(id=>html`<${Card} key=${id} p=${pOf(id)} go=${go} S=${S}/>`)}</div>
   <${Btn} kind="ghost" onClick=${reset}>Start over<//></div>`}
- return html`<section class="mx-auto max-w-2xl px-4 py-10"><h1 class="font-serif text-3xl text-sage-900">Find my fit</h1><p class="mb-6 mt-2 text-sm text-sage-700">A guided way to narrow down products. It isn’t a diagnosis or a prescription.</p>${prog}${body}${step>0&&step<3&&html`<button class="mt-6 flex items-center gap-2 text-sm text-sage-700" onClick=${()=>setStep(step-1)}><${Icon} n="back" s=${16}/>Back</button>`}</section>`}
+ return html`<section class=${W+" py-10"}><div class="grid gap-10 lg:grid-cols-5"><div class="lg:col-span-3"><h1 class="font-serif text-3xl text-sage-900 sm:text-4xl">Find my fit</h1><p class="mb-6 mt-2 text-sm text-sage-700">A guided way to narrow down products. It isn’t a diagnosis or a prescription.</p>${prog}${body}${step>0&&step<3&&html`<button class="mt-6 flex items-center gap-2 text-sm text-sage-700" onClick=${()=>setStep(step-1)}><${Icon} n="back" s=${16}/>Back</button>`}</div><aside class="hidden lg:col-span-2 lg:block"><div class="sticky top-28 rounded-3xl bg-gradient-to-br from-blush-100 via-cream to-sage-100 p-8"><p class="font-serif text-2xl text-sage-900">How this works</p><ul class="mt-4 space-y-3 text-sm text-sage-700"><li>Answer a few quick questions. There are no wrong answers.</li><li>We match your concern to the products and point out when a doctor should come first.</li><li>Your answers stay on this device and nothing is sent anywhere.</li><li>It narrows down what to read. It never diagnoses or prescribes.</li></ul></div></aside></div></section>`}
 
-function Products({go,S}){return html`<section class="mx-auto max-w-6xl px-4 py-10"><h1 class="font-serif text-3xl text-sage-900">Products</h1><p class="mt-2 max-w-xl text-sm text-sage-700">Real ingredients and directions compiled from public listings. Not sure which to read first? Try <button class="underline" onClick=${()=>go("fit")}>Find my fit</button>.</p><div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">${PR.map(p=>html`<${Card} key=${p.id} p=${p} go=${go} S=${S}/>`)}</div></section>`}
+function Products({go,S}){return html`<section class=${W+" py-10"}><h1 class="font-serif text-3xl text-sage-900 sm:text-4xl">Products</h1><p class="mt-2 max-w-xl text-sm text-sage-700">Real ingredients and directions compiled from public listings. Not sure which to read first? Try <button class="underline" onClick=${()=>go("fit")}>Find my fit</button>.</p><div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">${PR.map(p=>html`<${Card} key=${p.id} p=${p} go=${go} S=${S}/>`)}</div></section>`}
 
 function Product({id,go,S}){
  const p=pOf(id);if(!p)return html`<section class="px-4 py-16 text-center"><${Btn} onClick=${()=>go("products")}>Back to products<//></section>`;
  const has=S.plan.some(x=>x.pid===p.id);
  const L=(items,ic)=>html`<ul class="mt-3 space-y-2 text-sm text-sage-700">${items.map((x,i)=>html`<li key=${i} class="flex gap-2"><span class="mt-0.5 shrink-0 text-sage-500"><${Icon} n=${ic||"check"} s=${16}/></span>${x}</li>`)}</ul>`;
- return html`<section class="mx-auto max-w-4xl px-4 py-10">
+ return html`<section class=${W+" py-10"}>
   <button onClick=${()=>go("products")} class="mb-5 flex items-center gap-2 text-sm text-sage-700"><${Icon} n="back" s=${16}/>All products</button>
-  <div class=${"rounded-[2rem] p-8 "+p.tint}><p class="text-sm text-sage-700">${p.type} · ${p.pack}</p><h1 class="mt-2 font-serif text-4xl text-sage-900">${p.name}</h1><p class="mt-1 text-sm text-sage-700">${p.sub}</p><p class="mt-3 max-w-lg text-sage-900">${p.line}</p>
-   <div class="mt-5 flex flex-wrap gap-3"><${Btn} onClick=${()=>S.add(p.id)} dis=${has}><${Icon} n=${has?"check":"plus"} s=${16}/>${has?"In my plan":"Add to my plan"}<//>${has&&html`<${Btn} kind="ghost" cls="bg-white/70" onClick=${()=>go("plan")}>Open plan<//>`}</div></div>
+  <div class=${"grid items-center gap-6 rounded-[2rem] p-5 sm:p-8 md:grid-cols-5 "+p.tint}><div class="md:col-span-3"><p class="text-sm text-sage-700">${p.type} · ${p.pack}</p><h1 class="mt-2 font-serif text-3xl text-sage-900 sm:text-4xl lg:text-5xl">${p.name}</h1><p class="mt-1 text-sm text-sage-700">${p.sub}</p><p class="mt-3 max-w-lg text-sage-900">${p.line}</p>
+   <div class="mt-5 flex flex-wrap gap-3"><${Btn} onClick=${()=>S.add(p.id)} dis=${has}><${Icon} n=${has?"check":"plus"} s=${16}/>${has?"In my plan":"Add to my plan"}<//>${has&&html`<${Btn} kind="ghost" cls="bg-white/70" onClick=${()=>go("plan")}>Open plan<//>`}</div></div><div class="md:col-span-2"><${Pic} p=${p} tint=${false} cls="h-56 rounded-3xl bg-white/70 md:h-72 lg:h-96"/></div></div>
   <div class="mt-5 flex gap-3 rounded-2xl bg-sage-900 p-5 text-sm text-sage-100"><span class="shrink-0"><${Icon} n="clock" s=${20}/></span><div><b class="text-white">Realistic timeline.</b> ${p.tl}</div></div>
-  <div class="mt-5 grid gap-5 md:grid-cols-2">
+  <div class="mt-5 grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
    <div class="rounded-3xl border border-blush-100 bg-white p-6"><${H}>What’s in it<//><ul class="mt-3 space-y-3 text-sm">${p.ing.map(([n,d])=>html`<li key=${n}><b class="text-sage-900">${n}.</b> <span class="text-sage-700">${d}</span></li>`)}</ul><p class="mt-4 rounded-xl bg-sage-50 p-3 text-xs text-sage-700">${p.full}</p></div>
    <div class="rounded-3xl border border-blush-100 bg-white p-6"><${H}>How to use<//>${L(p.how)}</div>
    <div class="rounded-3xl bg-sage-50 p-6"><${H}>Realistic expectations<//>${L(p.exp)}</div>
@@ -182,32 +189,32 @@ function Plan({go,S}){
   L.push("","Questions I want to ask:","- Is it safe to continue alongside my medication or conditions?","- Is a different approach or a test needed?");return L.join("\n")};
  const copy=()=>{const txt=summary();const ok=()=>setCopied("Copied");const fail=()=>setCopied("Select the text above and copy it");try{navigator.clipboard.writeText(txt).then(ok,fail)}catch(e){fail()}};
  const inp="w-full rounded-xl border border-sage-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500";
- if(!plan.length)return html`<section class="mx-auto max-w-3xl px-4 py-12"><h1 class="font-serif text-3xl text-sage-900">My plan</h1><div class="mt-6 rounded-3xl bg-blush-50 p-8 text-center"><p class="font-serif text-xl text-sage-900">Nothing here yet</p><p class="mt-2 text-sm text-sage-700">Add a product to get a daily checklist, a realistic review window and a summary you can show a professional.</p><div class="mt-4 flex justify-center gap-3"><${Btn} onClick=${()=>go("fit")}>Find my fit<//><${Btn} kind="ghost" onClick=${()=>go("products")}>Browse products<//></div></div></section>`;
- return html`<section class="mx-auto max-w-5xl px-4 py-10">
-  <h1 class="font-serif text-3xl text-sage-900">My plan</h1><p class="mt-2 max-w-xl text-sm text-sage-700">Stored only in this browser. Avoid names or sensitive details in notes.</p>
-  <div class="mt-6"><${H}>Today</H><div class="mt-3 space-y-2">${plan.map(x=>{const pp=pOf(x.pid),k=t+"|"+x.pid,on=!!done[k];return html`<button key=${x.pid} onClick=${()=>S.setDone({...done,[k]:!on})} class=${"flex w-full items-center gap-3 rounded-2xl border p-4 text-left "+(on?"border-sage-500 bg-sage-50":"border-blush-100 bg-white")}><span class=${"grid h-7 w-7 shrink-0 place-items-center rounded-full border "+(on?"border-sage-700 bg-sage-700 text-white":"border-sage-200")}>${on&&html`<${Icon} n="check" s=${16}/>`}</span><span><b class="text-sm text-sage-900">${pp.name}</b><span class="block text-xs text-sage-700">${pp.today}</span></span></button>`})}</div></div>
-  <div class="mt-8"><${H}>Reality check</H><div class="mt-3 grid gap-4 md:grid-cols-2">${plan.map(x=>{const pp=pOf(x.pid),d=daysBetween(x.start,t)+1,cs=mine(x.pid),vs=cs.map(avg),ch=vs.length>1?vs[vs.length-1]-vs[0]:null;return html`<div key=${x.pid} class="rounded-3xl border border-blush-100 bg-white p-5">
+ if(!plan.length)return html`<section class="mx-auto max-w-3xl px-4 py-12"><h1 class="font-serif text-3xl text-sage-900 sm:text-4xl">My plan</h1><div class="mt-6 rounded-3xl bg-blush-50 p-8 text-center"><p class="font-serif text-xl text-sage-900">Nothing here yet</p><p class="mt-2 text-sm text-sage-700">Add a product to get a daily checklist, a realistic review window and a summary you can show a professional.</p><div class="mt-4 flex justify-center gap-3"><${Btn} onClick=${()=>go("fit")}>Find my fit<//><${Btn} kind="ghost" onClick=${()=>go("products")}>Browse products<//></div></div></section>`;
+ return html`<section class=${W+" py-10"}>
+  <h1 class="font-serif text-3xl text-sage-900 sm:text-4xl">My plan</h1><p class="mt-2 max-w-xl text-sm text-sage-700">Stored only in this browser. Avoid names or sensitive details in notes.</p>
+  <div class="mt-6"><${H}>Today</H><div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">${plan.map(x=>{const pp=pOf(x.pid),k=t+"|"+x.pid,on=!!done[k];return html`<button key=${x.pid} onClick=${()=>S.setDone({...done,[k]:!on})} class=${"flex w-full items-center gap-3 rounded-2xl border p-4 text-left "+(on?"border-sage-500 bg-sage-50":"border-blush-100 bg-white")}><span class=${"grid h-7 w-7 shrink-0 place-items-center rounded-full border "+(on?"border-sage-700 bg-sage-700 text-white":"border-sage-200")}>${on&&html`<${Icon} n="check" s=${16}/>`}</span><span><b class="text-sm text-sage-900">${pp.name}</b><span class="block text-xs text-sage-700">${pp.today}</span></span></button>`})}</div></div>
+  <div class="mt-8"><${H}>Reality check</H><div class="mt-3 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">${plan.map(x=>{const pp=pOf(x.pid),d=daysBetween(x.start,t)+1,cs=mine(x.pid),vs=cs.map(avg),ch=vs.length>1?vs[vs.length-1]-vs[0]:null;return html`<div key=${x.pid} class="rounded-3xl border border-blush-100 bg-white p-5">
    <div class="flex items-start justify-between gap-2"><div><p class="font-medium text-sage-900">${pp.name}</p><p class="text-xs text-sage-500">Day ${d} of a 90-day review window</p></div><button aria-label=${"Remove "+pp.name} class="rounded-full p-2 text-blush-600 hover:bg-blush-50" onClick=${()=>S.remove(x.pid)}><${Icon} n="x" s=${16}/></button></div>
    <div class="mt-3 h-2 overflow-hidden rounded-full bg-sage-100"><div class="h-full rounded-full bg-sage-500" style=${{width:Math.min(100,d/90*100)+"%"}}></div></div>
    <p class="mt-3 text-sm text-sage-700">${phase(d)}</p><p class="mt-2 text-xs text-sage-500">${pp.win?pp.tl:"No brand timeline found. The 90-day window is only a checkpoint."}</p>
    <div class="mt-3 flex items-center justify-between"><${Spark} vals=${vs}/>${ch!==null&&html`<span class="text-xs text-sage-700">${ch>=0.5?"Your ratings are higher than at baseline":ch<=-0.5?"Your ratings are lower than at baseline":"Your ratings are about the same as baseline"}</span>`}</div>
    ${cs.some(c=>c.react)&&html`<div class="mt-3"><${Note} tone="warn"><b>You logged a reaction.</b> Stop using it and speak to a pharmacist or doctor.<//></div>`}</div>`})}</div></div>
-  <div class="mt-8 rounded-3xl border border-blush-100 bg-white p-5"><${H}>Weekly check-in<//><p class="text-xs text-sage-500">1 = worst, 5 = best. Your first check-in becomes your baseline. Self-ratings are subjective, so compare in the same light and conditions.</p>
+  <div class="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start"><div class="rounded-3xl border border-blush-100 bg-white p-5"><${H}>Weekly check-in<//><p class="text-xs text-sage-500">1 = worst, 5 = best. Your first check-in becomes your baseline. Self-ratings are subjective, so compare in the same light and conditions.</p>
    <label class="mt-3 block text-xs text-sage-700">Product<select class=${inp+" mt-1"} value=${pid} onChange=${e=>setF({...f,pid:e.target.value,s:{}})}>${plan.map(x=>html`<option key=${x.pid} value=${x.pid}>${pOf(x.pid).name}</option>`)}</select></label>
    ${p&&p.watch.map(([k,n])=>html`<label key=${k} class="mt-3 block text-xs text-sage-700">${n}: <b class="text-sage-900">${f.s[k]||3}</b><input type="range" min="1" max="5" value=${f.s[k]||3} onChange=${e=>setF({...f,s:{...f.s,[k]:e.target.value}})} class="mt-1 w-full accent-[#7A9B76]"/></label>`)}
    <label class="mt-3 flex items-center gap-2 text-sm text-sage-700"><input type="checkbox" checked=${f.react} onChange=${e=>setF({...f,react:e.target.checked})}/>I had a reaction (itching, redness, swelling, pain)</label>
    <label class="mt-3 block text-xs text-sage-700">Note (optional, max 200 characters)<textarea rows="2" maxlength="200" class=${inp+" mt-1"} value=${f.note} onChange=${e=>setF({...f,note:e.target.value})}></textarea></label>
    <div class="mt-3"><${Btn} onClick=${save}><${Icon} n="plus" s=${16}/>Save check-in<//></div></div>
-  <div class="mt-8 rounded-3xl bg-sage-50 p-5"><${H}>Summary for a doctor or pharmacist<//><p class="text-xs text-sage-700">Built from your plan and check-ins. Copy it to show or send.</p>
+  <div class="rounded-3xl bg-sage-50 p-5"><${H}>Summary for a doctor or pharmacist<//><p class="text-xs text-sage-700">Built from your plan and check-ins. Copy it to show or send.</p>
    <textarea readonly rows="9" class=${inp+" mt-3 font-mono text-xs"} value=${summary()}></textarea>
-   <div class="mt-3 flex flex-wrap items-center gap-3"><${Btn} onClick=${copy}><${Icon} n="copy" s=${16}/>Copy summary<//>${copied&&html`<span class="text-xs text-sage-700">${copied}</span>`}<span class="flex-1"></span><${Btn} kind="soft" onClick=${()=>{if(!conf){setConf(true);return}S.reset();setConf(false)}}><${Icon} n="trash" s=${14}/>${conf?"Tap again to erase everything":"Reset my plan"}<//></div></div>
+   <div class="mt-3 flex flex-wrap items-center gap-3"><${Btn} onClick=${copy}><${Icon} n="copy" s=${16}/>Copy summary<//>${copied&&html`<span class="text-xs text-sage-700">${copied}</span>`}<span class="flex-1"></span><${Btn} kind="soft" onClick=${()=>{if(!conf){setConf(true);return}S.reset();setConf(false)}}><${Icon} n="trash" s=${14}/>${conf?"Tap again to erase everything":"Reset my plan"}<//></div></div></div>
  </section>`}
 
 function Help({go}){
  const [open,setOpen]=useState(0);
- return html`<section class="mx-auto max-w-3xl px-4 py-10"><h1 class="font-serif text-3xl text-sage-900">Help & good to know</h1>
-  <div class="mt-6 space-y-3">${FAQ.map(([q,a],i)=>html`<div key=${i} class="rounded-2xl border border-blush-100 bg-white"><button class="flex w-full items-center justify-between gap-3 p-4 text-left text-sm font-medium text-sage-900" onClick=${()=>setOpen(open===i?-1:i)} aria-expanded=${open===i}>${q}<span class=${"shrink-0 transition "+(open===i?"rotate-180":"")}><${Icon} n="down" s=${18}/></span></button>${open===i&&html`<p class="px-4 pb-4 text-sm text-sage-700">${a}</p>`}</div>`)}</div>
-  <div class="mt-8 rounded-3xl bg-blush-50 p-6"><${H}>Need real product or health support?<//><p class="mt-2 text-sm text-sage-700">This guide doesn’t handle orders or customer support. For orders and product questions, use Be Bodywise’s official channels. For health concerns, speak to a doctor or pharmacist.</p><div class="mt-4 flex gap-3"><${Btn} onClick=${()=>go("fit")}>Find my fit<//><${Btn} kind="ghost" onClick=${()=>go("plan")}>My plan<//></div></div></section>`}
+ return html`<section class=${W+" py-10"}><h1 class="font-serif text-3xl text-sage-900 sm:text-4xl">Help & good to know</h1>
+  <div class="mt-6 grid gap-8 lg:grid-cols-5 lg:items-start"><div class="space-y-3 lg:col-span-3">${FAQ.map(([q,a],i)=>html`<div key=${i} class="rounded-2xl border border-blush-100 bg-white"><button class="flex w-full items-center justify-between gap-3 p-4 text-left text-sm font-medium text-sage-900" onClick=${()=>setOpen(open===i?-1:i)} aria-expanded=${open===i}>${q}<span class=${"shrink-0 transition "+(open===i?"rotate-180":"")}><${Icon} n="down" s=${18}/></span></button>${open===i&&html`<p class="px-4 pb-4 text-sm text-sage-700">${a}</p>`}</div>`)}</div>
+  <div class="rounded-3xl bg-blush-50 p-6 lg:sticky lg:top-28 lg:col-span-2"><${H}>Need real product or health support?<//><p class="mt-2 text-sm text-sage-700">This guide doesn’t handle orders or customer support. For orders and product questions, use Be Bodywise’s official channels. For health concerns, speak to a doctor or pharmacist.</p><div class="mt-4 flex gap-3"><${Btn} onClick=${()=>go("fit")}>Find my fit<//><${Btn} kind="ghost" onClick=${()=>go("plan")}>My plan<//></div></div></div></section>`}
 
 function App(){
  const read=()=>{try{return location.hash.slice(1)||"home"}catch(e){return"home"}};
@@ -223,8 +230,8 @@ function App(){
  else if(route==="plan")page=html`<${Plan} go=${go} S=${S}/>`;
  else if(route==="help")page=html`<${Help} go=${go}/>`;
  else page=html`<${Home} go=${go}/>`;
- return html`<div class="min-h-screen">
-  <${Nav} route=${route} go=${go}/><main>${page}</main>
-  <footer class="border-t border-blush-100 bg-blush-50/50 px-4 py-8 text-xs text-sage-700"><div class="mx-auto max-w-6xl space-y-2"><p><b>Bodywise Guide</b> is an independent product guide and is not the official Be Bodywise website. Brand and product names belong to their respective owners.</p><p>The information here is for general guidance and isn’t medical advice. Results vary from person to person, and product details can change, so please check your pack and speak to a qualified professional about any health concern.</p><p>Your plan and check-ins are saved only on this device.</p></div></footer></div>`}
+ return html`<div class="flex min-h-screen flex-col">
+  <${Nav} route=${route} go=${go}/><main class="flex-1">${page}</main>
+  <footer class="border-t border-blush-100 bg-blush-50/50 py-8 text-xs text-sage-700"><div class=${W+" grid gap-3 lg:grid-cols-3 lg:gap-10"}><p><b>Bodywise Guide</b> is an independent product guide and is not the official Be Bodywise website. Brand and product names belong to their respective owners.</p><p>The information here is for general guidance and isn’t medical advice. Results vary from person to person, and product details can change, so please check your pack and speak to a qualified professional about any health concern.</p><p>Your plan and check-ins are saved only on this device.</p></div></footer></div>`}
 
 export default App;
